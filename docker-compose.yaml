@@ -1,0 +1,13 @@
+services:
+  app-mock:
+    build: app-mock
+    ports:
+      - "8000:8000"
+  local-postgres:
+    image: postgres:12
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: 1234567890
