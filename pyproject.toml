@@ -1,0 +1,23 @@
+[tool.mypy]
+strict = true
+implicit_reexport = true
+
+[tool.ruff]
+line-length = 125
+src = ["src"]
+exclude = [
+    "build",
+    ".venv",
+    "*.egg-info"
+]
+lint.extend-select = [
+    "I",
+    "COM",
+    "F",
+    "PL",
+    "UP",
+]
+lint.ignore = [
+    "COM812",
+    "PLR0913"
+]
