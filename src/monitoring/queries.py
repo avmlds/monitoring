@@ -1,0 +1,101 @@
+CREATE_LOCAL_MONITORING_TABLE = (
+    "CREATE TABLE IF NOT EXISTS monitoring ("
+    "id VARCHAR PRIMARY KEY,"
+    "url VARCHAR NOT NULL,"
+    "method VARCHAR NOT NULL,"
+    "request_timestamp TIMESTAMP NOT NULL,"
+    "status_code INTEGER,"
+    "response_timestamp TIMESTAMP,"
+    "regex_check_required BOOLEAN NOT NULL,"
+    "regex VARCHAR,"
+    "contains_regex BOOLEAN NOT NULL,"
+    "contains_exception BOOLEAN NOT NULL,"
+    "exception VARCHAR,"
+    "processed BOOLEAN NOT NULL,"
+    "created_at TIMESTAMP NOT NULL"
+    ");"
+)
+
+CREATE_LOCAL_MONITORING_RECORD = (
+    "INSERT INTO monitoring VALUES ("
+    ":id,"
+    ":url,"
+    ":method,"
+    ":request_timestamp,"
+    ":status_code,"
+    ":response_timestamp,"
+    ":regex_check_required,"
+    ":regex,"
+    ":contains_regex,"
+    ":contains_exception,"
+    ":exception,"
+    ":processed,"
+    ":created_at"
+    ");"
+)
+
+MARK_AS_PROCESSED = "UPDATE monitoring SET processed = true WHERE id in ({});"
+
+DELETE_PROCESSED = "DELETE FROM monitoring WHERE processed = true;"
+
+SELECT_UNPROCESSED = (
+    "SELECT "
+    "    id,"
+    "    url,"
+    "    method,"
+    "    request_timestamp,"
+    "    status_code,"
+    "    response_timestamp,"
+    "    regex_check_required,"
+    "    regex,"
+    "    contains_regex,"
+    "    contains_exception,"
+    "    exception,"
+    "    processed,"
+    "    created_at "
+    "FROM monitoring "
+    "WHERE processed = false "
+    "LIMIT 100;"
+)
+
+
+COUNT_PROCESSED = "SELECT COUNT(1) FROM monitoring WHERE processed = true;"
+
+CREATE_REMOTE_MONITORING_TABLE = (
+    "CREATE TABLE IF NOT EXISTS monitoring ("
+    "    id SERIAL PRIMARY KEY,"
+    "    local_id VARCHAR NOT NULL UNIQUE,"
+    "    url VARCHAR NOT NULL,"
+    "    method VARCHAR NOT NULL,"
+    "    request_timestamp TIMESTAMP NOT NULL,"
+    "    regex_check_required BOOLEAN NOT NULL,"
+    "    contains_regex BOOLEAN NOT NULL,"
+    "    contains_exception BOOLEAN NOT NULL,"
+    "    status_code INTEGER,"
+    "    response_timestamp TIMESTAMP,"
+    "    regex VARCHAR,"
+    "    exception TEXT,"
+    "    local_created_at TIMESTAMP NOT NULL,"
+    "    created_at TIMESTAMP NOT NULL DEFAULT (timezone('utc', now()))"
+    ");"
+)
+
+
+INSERT_REMOTE_MONITORING_TABLE = (
+    "INSERT INTO monitoring ("
+    "    local_id,"
+    "    url,"
+    "    method,"
+    "    request_timestamp,"
+    "    regex_check_required,"
+    "    contains_regex,"
+    "    contains_exception,"
+    "    status_code,"
+    "    response_timestamp,"
+    "    regex,"
+    "    exception,"
+    "    local_created_at"
+    ") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) "
+    "ON CONFLICT (local_id) DO NOTHING;"
+)
+SELECT_LOCAL_ID_FROM_REMOTE_MONITORING_TABLE = "SELECT local_id FROM monitoring WHERE local_id IN ({});"
