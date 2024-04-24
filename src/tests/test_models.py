@@ -34,6 +34,24 @@ def test_service_response_from_response():
     assert service_response.contains_regex is True
 
 
+def test_service_response_empty_response_text():
+    get_request = Request(method=METHOD_GET, url=URL)
+    fake_response = Response(status_code=HTTP_CODE_200, text=None, request=get_request)
+    service_response = ServiceResponse.from_response(
+        url=URL,
+        response=fake_response,
+        request_timestamp=datetime.now(),
+        response_timestamp=datetime.now(),
+        regex_check_required=True,
+        regex=r".*Test.*",
+    )
+
+    assert service_response.url == URL
+    assert service_response.method == METHOD_GET
+    assert service_response.status_code == HTTP_CODE_200
+    assert service_response.contains_regex is False
+
+
 def test_service_response_from_response_negative():
     get_request = Request(method=METHOD_GET, url=URL)
     fake_response = Response(status_code=HTTP_CODE_200, text="Test Response", request=get_request)

@@ -34,8 +34,9 @@ class ServiceResponse(BaseModel):
     exception: Optional[str] = None
 
     @staticmethod
-    def _contains_regex(regex: str, text: str) -> bool:
-        return re.search(regex, text) is not None
+    def _contains_regex(regex: str, text: Optional[str]) -> bool:
+        """Check if string contains a specified regexp."""
+        return text is not None and re.search(regex, text) is not None
 
     @classmethod
     def from_response(
