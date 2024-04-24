@@ -100,6 +100,7 @@ def test_create_delete_services(  # noqa: PLR0912
         create_args.extend(config_args)
         add_services_args.extend(config_args)
         remove_service_args.extend(config_args)
+        show_services_args.extend(config_args)
         delete_args.extend(config_args)
 
     if interval < MIN_HEALTHCHECK_INTERVAL_SECONDS or interval > MAX_HEALTHCHECK_INTERVAL_SECONDS:
