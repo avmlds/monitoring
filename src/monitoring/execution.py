@@ -10,6 +10,7 @@ async def start_workers(
     config: Config,
     manager: LocalDatabaseManager,
 ) -> None:
+    """Start all the application workers."""
     monitoring = Agent(config, manager)
     exporter = Exporter(config, manager)
     collector = Collector(config, manager)
@@ -17,6 +18,7 @@ async def start_workers(
 
 
 def start(startup_configuration: StartupConfiguration) -> None:
+    """Application's entrypoint."""
     config = Config.load(startup_configuration.config_path)
     if config.contains_no_service:
         raise NoServicesSpecifiedError

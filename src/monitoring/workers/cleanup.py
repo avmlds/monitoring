@@ -15,6 +15,7 @@ class Collector(Worker):
     PAUSE_TIME_SECONDS = 2
 
     async def _task(self) -> None:
+        """Cleanup periodic task that will be called in an infinite loop."""
         loop = asyncio.get_running_loop()
         before = await loop.run_in_executor(None, self.database_manager.count_processed)
         LOG.debug(f"Found {before} processed records to delete.")

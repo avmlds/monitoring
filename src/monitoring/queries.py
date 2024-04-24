@@ -15,6 +15,7 @@ CREATE_LOCAL_MONITORING_TABLE = (
     "created_at TIMESTAMP NOT NULL"
     ");"
 )
+"""Create a table in a local database. Won't recreate a table if it exists"""
 
 CREATE_LOCAL_MONITORING_RECORD = (
     "INSERT INTO monitoring VALUES ("
@@ -33,10 +34,13 @@ CREATE_LOCAL_MONITORING_RECORD = (
     ":created_at"
     ");"
 )
+"""Insert a row into a local database."""
 
 MARK_AS_PROCESSED = "UPDATE monitoring SET processed = true WHERE id in ({});"
+"""Mark record as processed in a local database."""
 
 DELETE_PROCESSED = "DELETE FROM monitoring WHERE processed = true;"
+"""Delete all processed records from a local database."""
 
 SELECT_UNPROCESSED = (
     "SELECT "
@@ -57,9 +61,10 @@ SELECT_UNPROCESSED = (
     "WHERE processed = false "
     "LIMIT 100;"
 )
-
+"""Select unprocessed rows from a local database."""
 
 COUNT_PROCESSED = "SELECT COUNT(1) FROM monitoring WHERE processed = true;"
+"""Count amount of processed rows ina local database."""
 
 CREATE_REMOTE_MONITORING_TABLE = (
     "CREATE TABLE IF NOT EXISTS monitoring ("
@@ -79,6 +84,7 @@ CREATE_REMOTE_MONITORING_TABLE = (
     "    created_at TIMESTAMP NOT NULL DEFAULT (timezone('utc', now()))"
     ");"
 )
+"""Create a monitoring table in a remote database. Won't recreate a table if it exists."""
 
 
 INSERT_REMOTE_MONITORING_TABLE = (
@@ -98,4 +104,7 @@ INSERT_REMOTE_MONITORING_TABLE = (
     ") VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) "
     "ON CONFLICT (local_id) DO NOTHING;"
 )
+"""Insert a row into a remote database. If row was already inserted - does nothing."""
+
 SELECT_LOCAL_ID_FROM_REMOTE_MONITORING_TABLE = "SELECT local_id FROM monitoring WHERE local_id IN ({});"
+"""Select records from a remote table that contains certain local IDs."""

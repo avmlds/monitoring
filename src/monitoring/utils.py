@@ -28,6 +28,7 @@ async def send_async_request(
     timeout: int = DEFAULT_REQUEST_TIMEOUT_SECONDS,
     regex: Optional[str] = None,
 ) -> ServiceResponse:
+    """Send an HTTP request to a specified URL."""
     if method not in SUPPORTED_METHODS:
         raise UnsupportedMethodError(method)
 

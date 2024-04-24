@@ -19,6 +19,11 @@ from monitoring.constants import (
 
 
 class ServiceResponse(BaseModel):
+    """Data model (representation) of a service response.
+
+    Can be created from an exception, TimeoutError, ConnectionError, etc. or a normal HTTP response.
+    """
+
     url: str
     method: str
     request_timestamp: datetime.datetime
@@ -48,6 +53,7 @@ class ServiceResponse(BaseModel):
         regex_check_required: bool,
         regex: Optional[str] = None,
     ) -> "ServiceResponse":
+        """Build an object from a regular HTTP response."""
         klass = cls(
             url=url,
             method=response.request.method,
@@ -73,6 +79,7 @@ class ServiceResponse(BaseModel):
         regex_check_required: bool,
         regex: Optional[str] = None,
     ) -> "ServiceResponse":
+        """Build an object from an exception."""
         return cls(
             url=url,
             method=method,
@@ -85,6 +92,8 @@ class ServiceResponse(BaseModel):
 
 
 class ServiceResponseLocalDump(ServiceResponse):
+    """Data model (representation) of the row that was inserted into the local database."""
+
     id: str
     created_at: datetime.datetime
     processed: bool = False
@@ -99,11 +108,14 @@ class ServiceResponseLocalDump(ServiceResponse):
 
 
 class ServiceResponseRemoteDump(ServiceResponse):
+    """Data model (representation) of the row that will be pushed to a remote database."""
+
     local_id: str
     local_created_at: datetime.datetime
 
     @classmethod
     def from_local_dump(cls, service_response: ServiceResponseLocalDump) -> "ServiceResponseRemoteDump":
+        """Build a data model from a local row."""
         return cls(
             local_id=service_response.id,
             local_created_at=service_response.created_at,
@@ -111,6 +123,8 @@ class ServiceResponseRemoteDump(ServiceResponse):
         )
 
     def as_row(self) -> Tuple[Any, ...]:
+        """Tuple data representation."""
+
         return (
             self.local_id,
             self.url,
@@ -128,6 +142,8 @@ class ServiceResponseRemoteDump(ServiceResponse):
 
 
 class HealthcheckConfig(BaseModel):
+    """Per-service configuration data model."""
+
     url: str
     method: str
     check_regex: bool
@@ -174,10 +190,12 @@ class HealthcheckConfig(BaseModel):
 
     @property
     def sorting_helper(self) -> str:
+        """Helper for returning services in a proper order."""
         return f"{self.url}{self.method}{self.check_regex}{self.regex}"
 
     @classmethod
     def fields(cls) -> List[str]:
+        """Helper fields for data visualisation."""
         return [
             "url",
             "method",

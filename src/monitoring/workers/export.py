@@ -37,6 +37,7 @@ class Exporter(Worker):
         return pool
 
     async def get_pool(self) -> asyncpg.Pool:
+        """Establish connection to a remote database."""
         LOG.debug("Creating connection to a remote database.")
         if self.pool is None:
             self.pool = await self._get_pool(self.config.external_database_uri)
@@ -45,10 +46,20 @@ class Exporter(Worker):
 
     @staticmethod
     def prepare_select_inserted_query(rows_to_insert: List[Tuple[Any, ...]]) -> str:
+        """Add required amount of placeholders to a select query."""
+
         placeholders = ", ".join([f"${i + 1}" for i in range(len(rows_to_insert))])
         return SELECT_LOCAL_ID_FROM_REMOTE_MONITORING_TABLE.format(placeholders)
 
     async def _export_rows(self, dumped_rows: List[ServiceResponseLocalDump]) -> None:
+        """Export unprocessed (not exported) rows from a local database to external database.
+
+        - get unprocessed rows from a local database
+        - push these rows to a remote database
+        - select ids of processed rows from a remote database
+        - mark them in a local database as processed
+        """
+
         loop = asyncio.get_event_loop()
 
         rows_for_export = [ServiceResponseRemoteDump.from_local_dump(dumped_row).as_row() for dumped_row in dumped_rows]
@@ -65,14 +76,16 @@ class Exporter(Worker):
         LOG.info(f"Exported {len(processed_ids)} records.")
 
     async def _task(self, *args: Iterable[Any], **kwargs: Dict[str, Any]) -> None:
+        """Export periodic task that will be called in an infinite loop."""
+
         try:
             loop = asyncio.get_event_loop()
-            dumped_rows = await loop.run_in_executor(None, self.database_manager.load_unprocessed)
-            if not dumped_rows:
+            unprocessed_rows = await loop.run_in_executor(None, self.database_manager.load_unprocessed)
+            if not unprocessed_rows:
                 LOG.info("No records to export.")
             else:
-                LOG.info(f"Trying to export {len(dumped_rows)} records to an external database.")
-                await self._export_rows(dumped_rows)
+                LOG.info(f"Trying to export {len(unprocessed_rows)} records to an external database.")
+                await self._export_rows(unprocessed_rows)
         except (ConnectionRefusedError, ConnectionError, ConnectionResetError, ConnectionAbortedError, socket.gaierror) as e:
             exception = None
             if self.pool is not None:

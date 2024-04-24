@@ -27,6 +27,8 @@ LOG = logging.getLogger()
 
 
 class Config(BaseModel):
+    """Global util configuration."""
+
     local_database_path: str
     external_database_uri: str
     services: List[HealthcheckConfig]
@@ -37,6 +39,7 @@ class Config(BaseModel):
 
     @classmethod
     def load(cls, config_path: Path) -> "Config":
+        """Load configuration file from a file."""
         path = config_path.expanduser().absolute()
         check_path_existence(path)
         try:
@@ -54,6 +57,7 @@ class Config(BaseModel):
             config_path.touch()
 
     def dump(self, path: Path) -> None:
+        """Save (dump) configuration file on a disk."""
         config_path = path.expanduser().absolute()
         self._create_if_not_exists(config_path)
         with config_path.open("w") as f:
@@ -64,6 +68,7 @@ class Config(BaseModel):
         return sorted(self.services, key=lambda service: service.sorting_helper)
 
     def services_table(self, numbered: bool = False) -> PrettyTable:
+        """Visualise configured services."""
         headers = HealthcheckConfig.fields()
         table_headers = headers
         if numbered:
@@ -77,6 +82,7 @@ class Config(BaseModel):
         return table
 
     def databases_table(self) -> PrettyTable:
+        """Visualise configured databases."""
         headers = ("Name", "Value")
         table = PrettyTable(field_names=headers)
         table.add_row(("Local", self.local_database_path))
@@ -85,12 +91,15 @@ class Config(BaseModel):
 
 
 class StartupConfiguration(BaseModel):
+    """Class for startup configurations."""
+
     verbosity_level: int = DEFAULT_VERBOSITY_LEVEL
     config_path: Path = Path(DEFAULT_CONFIG_PATH)
     systemd_notify: bool = False
 
     @property
     def logging_level(self) -> int:
+        """Calculate logging level."""
         if self.verbosity_level >= DEBUG_LEVEL:
             return logging.DEBUG
         elif self.verbosity_level == INFO_LEVEL:
@@ -103,6 +112,7 @@ class StartupConfiguration(BaseModel):
             return logging.CRITICAL
 
     def notify_systemd(self) -> None:
+        """Send a message to systemd socket if necessary."""
         if not self.systemd_notify:
             LOG.warning("Systemd notification is disabled.")
         else:

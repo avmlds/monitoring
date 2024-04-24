@@ -11,7 +11,11 @@ LOG = logging.getLogger()
 
 
 class Agent(BaseWorker):
+    """Main agent that takes care about sending HTTP requests to specified services."""
+
     def estimate_workload(self) -> Tuple[float, float]:
+        """Estimate workload in RPM (requests per minute)."""
+
         rpm = [MINUTE_SECONDS / service.interval_sec for service in self.config.services]
         total_rpm = sum(rpm)
         avg = total_rpm / len(self.config.services)
@@ -20,6 +24,7 @@ class Agent(BaseWorker):
         return total_rpm, avg
 
     async def _task(self, config: HealthcheckConfig) -> None:
+        """Worker task that will be called in an infinite loop."""
         service_response = await send_async_request(
             config.method,
             config.url,
@@ -33,10 +38,12 @@ class Agent(BaseWorker):
         await asyncio.sleep(config.interval_sec)
 
     async def worker(self, config: HealthcheckConfig) -> None:
+        """Base worker task loop."""
         while not self.database_manager.is_terminating:
             await self._task(config)
 
     async def start(self) -> None:
+        """Main worker method."""
         LOG.warning(f"Starting {self.class_name()} worker.")
         self.estimate_workload()
         await asyncio.gather(*map(self.worker, self.config.services))
