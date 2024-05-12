@@ -10,9 +10,11 @@ from monitoring.config import Config, StartupConfiguration
 from monitoring.constants import (
     DEFAULT_CONFIG_PATH,
     DEFAULT_LOCALDB_PATH,
+    DEFAULT_MAX_WORKERS,
     DEFAULT_REQUEST_INTERVAL_SECONDS,
     DEFAULT_REQUEST_TIMEOUT_SECONDS,
     MAX_HEALTHCHECK_INTERVAL_SECONDS,
+    MAX_SERVICES_PER_WORKER,
     MIN_HEALTHCHECK_INTERVAL_SECONDS,
     SUPPORTED_METHODS,
 )
@@ -265,14 +267,41 @@ def update_service_configuration(
 @click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
 @click.option("--yes", is_flag=True, help="Start without a confirmation prompt.")
 @click.option("--notify-systemd", "-ns", is_flag=True, help="Notify systemd after application start.")
+@click.option(
+    "--max-workers",
+    "-mw",
+    type=int,
+    default=DEFAULT_MAX_WORKERS,
+    help="Max number of workers.",
+)
+@click.option(
+    "--services-per-worker",
+    "-spw",
+    type=int,
+    default=MAX_SERVICES_PER_WORKER,
+    help="Max services per worker.",
+)
 @click.option("-v", count=True, help="Logging level.")
 @cli.command("start")
-def start_monitoring(yes: bool, config_path: Path, v: int, notify_systemd: bool) -> None:
+def start_monitoring(
+    yes: bool,
+    config_path: Path,
+    v: int,
+    notify_systemd: bool,
+    max_workers: int,
+    services_per_worker: int,
+) -> None:
     """Start monitoring."""
 
     path = config_path.expanduser().absolute()
     if not yes:
         click.confirm(f"Are you sure want to start monitoring? Config path: {path.as_posix()}", abort=True)
-    startup_config = StartupConfiguration(verbosity_level=v, config_path=config_path, systemd_notify=notify_systemd)
+    startup_config = StartupConfiguration(
+        verbosity_level=v,
+        config_path=config_path,
+        systemd_notify=notify_systemd,
+        max_workers=max_workers,
+        services_per_worker=services_per_worker,
+    )
     logger.setLevel(startup_config.logging_level)
     start(startup_config)
