@@ -3,7 +3,7 @@ import logging
 from pathlib import Path
 from typing import Optional
 
-import httpx
+import aiohttp
 
 from monitoring.constants import (
     DEFAULT_HEADERS,
@@ -35,30 +35,33 @@ async def send_async_request(
     if timeout < 0:
         raise InvalidParameterValueError("timeout")
 
-    async with httpx.AsyncClient(timeout=timeout, headers=DEFAULT_HEADERS) as client:
-        request_timestamp = datetime.datetime.utcnow()
-        try:
-            response = await client.request(method, url)
-            response_timestamp = datetime.datetime.utcnow()
-            LOG.info(f"Success | {response.status_code} | '{method}' | '{url}'")
-            return ServiceResponse.from_response(
-                url,
-                response,
-                request_timestamp,
-                response_timestamp,
-                regex_check_required,
-                regex,
-            )
-        except Exception as e:
-            LOG.info(f"Failure | XXX | '{method}' | '{url}' | '{e}'")
-            return ServiceResponse.from_exception(
-                url,
-                method,
-                e,
-                request_timestamp,
-                regex_check_required,
-                regex,
-            )
+    request_timestamp = datetime.datetime.utcnow()
+    try:
+        async with aiohttp.ClientSession(headers=DEFAULT_HEADERS) as client:
+            async with client.request(method, url, timeout=timeout) as response:
+                response_timestamp = datetime.datetime.utcnow()
+                LOG.info(f"Success | {response.status} | '{method}' | '{url}'")
+                response_text = await response.text()
+                return ServiceResponse.from_response(
+                    url=url,
+                    method=method,
+                    status=response.status,
+                    response_text=response_text,
+                    request_timestamp=request_timestamp,
+                    response_timestamp=response_timestamp,
+                    regex_check_required=regex_check_required,
+                    regex=regex,
+                )
+    except (ConnectionError, Exception) as e:
+        LOG.error(f"Failure | XXX | '{method}' | '{url}' | '{e}'")
+        return ServiceResponse.from_exception(
+            url,
+            method,
+            e,
+            request_timestamp,
+            regex_check_required,
+            regex,
+        )
 
 
 def check_path_existence(path: Path) -> None:

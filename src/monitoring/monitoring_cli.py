@@ -23,7 +23,7 @@ from monitoring.models import HealthcheckConfig
 from monitoring.utils import check_path_existence
 
 logger = logging.getLogger()
-logging.getLogger("httpx").setLevel("CRITICAL")
+logging.getLogger("aiohttp").setLevel("CRITICAL")
 handler = logging.StreamHandler()
 formatter = logging.Formatter("%(levelname)s | %(asctime)s | %(module)s | %(lineno)d | %(message)s")
 handler.setFormatter(formatter)
