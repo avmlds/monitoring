@@ -5,7 +5,7 @@ setup(
     version="0.0.1",
     packages=find_packages(exclude=["tests"]),
     install_requires=[
-        "httpx >= 0.27.0",
+        "aiohttp >= 3.9.5",
         "pydantic >= 2.7.0",
         "prettytable >= 3.10.0",
         "click >= 8.1.7",
