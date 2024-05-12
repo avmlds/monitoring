@@ -12,9 +12,11 @@ from pydantic import BaseModel
 from monitoring.constants import (
     DEBUG_LEVEL,
     DEFAULT_CONFIG_PATH,
+    DEFAULT_MAX_WORKERS,
     DEFAULT_VERBOSITY_LEVEL,
     ERROR_LEVEL,
     INFO_LEVEL,
+    MAX_SERVICES_PER_WORKER,
     SYSTEMD_NOTIFY_MESSAGE,
     SYSTEMD_SOCKET,
     WARNING_LEVEL,
@@ -48,6 +50,8 @@ class Config(BaseModel):
         except JSONDecodeError:
             raise InvalidConfigurationFileError(path.as_posix())
 
+        # external_database_uri = os.getenv("RAM_DATABASE_URI")
+        # config["external_database_uri"] = external_database_uri
         return cls(**config)
 
     @staticmethod
@@ -93,6 +97,8 @@ class Config(BaseModel):
 class StartupConfiguration(BaseModel):
     """Class for startup configurations."""
 
+    max_workers: int = DEFAULT_MAX_WORKERS
+    services_per_worker: int = MAX_SERVICES_PER_WORKER
     verbosity_level: int = DEFAULT_VERBOSITY_LEVEL
     config_path: Path = Path(DEFAULT_CONFIG_PATH)
     systemd_notify: bool = False
