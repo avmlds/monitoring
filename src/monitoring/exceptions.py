@@ -36,3 +36,30 @@ class InvalidConfigurationFileError(Exception):
 
     def __init__(self, path: str) -> None:
         super().__init__(f"Specified configuration file '{path}' is not valid or corrupted.")
+
+
+class TooManyServicesError(Exception):
+    """Too many services."""
+
+    def __init__(self) -> None:
+        super().__init__("Config contains too many services.")
+
+
+class NotEnoughWorkersError(Exception):
+    def __init__(
+        self,
+        workers_num: int,
+        services_num: int,
+        chunk_num: int,
+    ) -> None:
+        super().__init__(
+            f"Invalid worker quantity or chunk size. "
+            f"Trying to distribute: {services_num} services "
+            f"among {workers_num} workers "
+            f"in {chunk_num} chunks."
+        )
+
+
+class ConnectionAttemptsExceededError(Exception):
+    def __init__(self) -> None:
+        super().__init__("Connection attempts exceeded.")

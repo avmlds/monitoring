@@ -83,3 +83,18 @@ SYSTEMD_NOTIFY_MESSAGE = b"READY=1"
 
 DEFAULT_HEADERS = {"user-agent": "monitoring-client"}
 """Default headers that will me attached to a HTTP request."""
+
+DEFAULT_MAX_WORKERS = 1
+"""Default max workers."""
+
+MAX_RECONNECTION_ATTEMPTS = 15
+"""Max reconnection attempts."""
+
+MAX_SERVICES_PER_WORKER = 1000
+"""Max services per worker."""
+
+DEFAULT_BATCH_SIZE = 5000
+"""Default export batch size."""
+
+ALLOWED_TIME_ERROR_SECONDS = 0.2
+"""Allowed error seconds."""
