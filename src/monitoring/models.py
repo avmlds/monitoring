@@ -1,9 +1,7 @@
 import datetime
 import re
-import uuid
-from typing import Any, List, Optional, Tuple
+from typing import List, Optional
 
-from httpx import Response
 from pydantic import BaseModel, model_validator
 
 from monitoring.constants import (
@@ -47,7 +45,9 @@ class ServiceResponse(BaseModel):
     def from_response(
         cls,
         url: str,
-        response: Response,
+        method: str,
+        status: int,
+        response_text: Optional[str],
         request_timestamp: datetime.datetime,
         response_timestamp: datetime.datetime,
         regex_check_required: bool,
@@ -56,8 +56,8 @@ class ServiceResponse(BaseModel):
         """Build an object from a regular HTTP response."""
         klass = cls(
             url=url,
-            method=response.request.method,
-            status_code=response.status_code,
+            method=method,
+            status_code=status,
             request_timestamp=request_timestamp,
             response_timestamp=response_timestamp,
             regex_check_required=regex_check_required,
@@ -66,7 +66,7 @@ class ServiceResponse(BaseModel):
         if regex_check_required:
             if regex is None:
                 raise ValueError("'regex' can't be None when regex check is required.")
-            klass.contains_regex = cls._contains_regex(regex, response.text)
+            klass.contains_regex = cls._contains_regex(regex, response_text)
         return klass
 
     @classmethod
@@ -91,65 +91,27 @@ class ServiceResponse(BaseModel):
         )
 
 
-class ServiceResponseLocalDump(ServiceResponse):
-    """Data model (representation) of the row that was inserted into the local database."""
-
-    id: str
-    created_at: datetime.datetime
-    processed: bool = False
-
-    @classmethod
-    def from_service_response(cls, service_response: ServiceResponse) -> "ServiceResponseLocalDump":
-        return cls(
-            id=str(uuid.uuid4()),
-            created_at=datetime.datetime.utcnow(),
-            **service_response.model_dump(),
-        )
-
-
-class ServiceResponseRemoteDump(ServiceResponse):
-    """Data model (representation) of the row that will be pushed to a remote database."""
-
-    local_id: str
-    local_created_at: datetime.datetime
-
-    @classmethod
-    def from_local_dump(cls, service_response: ServiceResponseLocalDump) -> "ServiceResponseRemoteDump":
-        """Build a data model from a local row."""
-        return cls(
-            local_id=service_response.id,
-            local_created_at=service_response.created_at,
-            **service_response.model_dump(exclude={"id", "created_at"}),
-        )
-
-    def as_row(self) -> Tuple[Any, ...]:
-        """Tuple data representation."""
-
-        return (
-            self.local_id,
-            self.url,
-            self.method,
-            self.request_timestamp,
-            self.regex_check_required,
-            self.contains_regex,
-            self.contains_exception,
-            self.status_code,
-            self.response_timestamp,
-            self.regex,
-            self.exception,
-            self.local_created_at,
-        )
-
-
 class HealthcheckConfig(BaseModel):
     """Per-service configuration data model."""
+
+    _MAXIMUM_PRIORITY = 0.0
 
     url: str
     method: str
     check_regex: bool
+    last_checked_at: Optional[datetime.datetime] = None
     regex: Optional[str] = None
     interval_sec: int = DEFAULT_REQUEST_INTERVAL_SECONDS
     timeout: int = DEFAULT_REQUEST_TIMEOUT_SECONDS
+
+    def __lt__(self, other: "HealthcheckConfig") -> bool:
+        return self.priority_seconds < other.priority_seconds
+
+    @property
+    def priority_seconds(self) -> float:
+        if self.last_checked_at is None:
+            return self._MAXIMUM_PRIORITY
+        return self.interval_sec - (datetime.datetime.utcnow() - self.last_checked_at).total_seconds()
 
     @model_validator(mode="after")
     def validate_url(self) -> "HealthcheckConfig":
