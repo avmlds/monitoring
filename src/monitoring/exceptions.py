@@ -38,11 +38,11 @@ class InvalidConfigurationFileError(Exception):
         super().__init__(f"Specified configuration file '{path}' is not valid or corrupted.")
 
 
-class TooManyServicesError(Exception):
-    """Too many services."""
+class InvalidDatabaseUriError(Exception):
+    """Raised when no env variable specified."""
 
     def __init__(self) -> None:
-        super().__init__("Config contains too many services.")
+        super().__init__("Specified environment variable 'DATABASE_URI' is not valid.")
 
 
 class NotEnoughWorkersError(Exception):

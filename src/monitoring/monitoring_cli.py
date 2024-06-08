@@ -64,55 +64,6 @@ def delete_config(config_path: Path) -> None:
     os.remove(path)
 
 
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
-@config.command("show")
-def show_config(config_path: Path) -> None:
-    """Show configuration."""
-
-    configuration = Config.load(config_path)
-    print(configuration.databases_table())
-    print(configuration.services_table())
-
-
-@config.group()
-def databases() -> None:
-    """Manage database configuration."""
-
-
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
-@databases.command("show")
-def show_database_configuration(config_path: Path) -> None:
-    """Manage database configuration."""
-
-    configuration = Config.load(config_path)
-    print(configuration.databases_table())
-
-
-@click.option("--local-path", type=Path)
-@click.option("--external-uri")
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
-@databases.command("update")
-def update_database_configuration(local_path: Optional[Path], external_uri: str, config_path: Path) -> None:
-    """Update database configuration."""
-
-    if not local_path and not external_uri:
-        return
-    configuration = Config.load(config_path)
-
-    configuration_changed = False
-    if local_path is not None:
-        check_path_existence(local_path)
-        configuration_changed = True
-        configuration.local_database_path = local_path.expanduser().absolute().as_posix()
-
-    if external_uri:
-        configuration_changed = True
-        configuration.external_database_uri = external_uri
-
-    if configuration_changed:
-        configuration.dump(config_path)
-
-
 @config.group()
 def services() -> None:
     """Manage services configuration."""

@@ -49,9 +49,6 @@ class Config(BaseModel):
                 config = json.load(f)
         except JSONDecodeError:
             raise InvalidConfigurationFileError(path.as_posix())
-
-        # external_database_uri = os.getenv("RAM_DATABASE_URI")
-        # config["external_database_uri"] = external_database_uri
         return cls(**config)
 
     @staticmethod
@@ -83,14 +80,6 @@ class Config(BaseModel):
             if numbered:
                 row = [n] + row
             table.add_row(row)
-        return table
-
-    def databases_table(self) -> PrettyTable:
-        """Visualise configured databases."""
-        headers = ("Name", "Value")
-        table = PrettyTable(field_names=headers)
-        table.add_row(("Local", self.local_database_path))
-        table.add_row(("External", self.external_database_uri))
         return table
 
 

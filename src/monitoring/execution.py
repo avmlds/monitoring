@@ -48,6 +48,10 @@ def _start(services: List[HealthcheckConfig], external_database_uri: str) -> Non
 def start(startup_configuration: StartupConfiguration) -> None:
     """Application's entrypoint."""
 
+    external_database_uri = os.getenv("DATABASE_URI")
+    if not external_database_uri:
+        raise InvalidDatabaseUriError
+
     config = Config.load(startup_configuration.config_path)
     if config.contains_no_service:
         raise NoServicesSpecifiedError
