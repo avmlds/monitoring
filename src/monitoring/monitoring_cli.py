@@ -28,6 +28,14 @@ formatter = logging.Formatter("%(levelname)s | %(asctime)s | %(module)s | %(line
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 
+CONFIG_OPTION = click.option(
+    "--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file."
+)
+
+
+def add_config_path_option(func: Callable[[Any], Any]) -> Callable[[Any], Any]:
+    return CONFIG_OPTION(func)
+
 
 @click.group()
 def cli() -> None:
@@ -39,21 +47,18 @@ def config() -> None:
     """Manage monitoring configuration."""
 
 
-@click.option("--local-path", default=Path(DEFAULT_LOCALDB_PATH), type=Path)
-@click.argument("external-uri")
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
+@add_config_path_option
 @config.command("create")
-def create_config(local_path: Path, external_uri: str, config_path: Path) -> None:
+def create_config(config_path: Path) -> None:
     """Create configuration file."""
 
-    database_path = local_path.expanduser().absolute().as_posix()
-    configuration = Config(local_database_path=database_path, external_database_uri=external_uri, services=[])
+    configuration = Config(services=[])
     configuration.dump(config_path)
     print(f"Configuration was successfully created at '{config_path.expanduser().absolute().as_posix()}'.")
     print("Now you can add your first service configuration with 'monitor config services add'")
 
 
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
+@add_config_path_option
 @config.command("delete")
 def delete_config(config_path: Path) -> None:
     """Delete configuration file."""
@@ -69,7 +74,7 @@ def services() -> None:
     """Manage services configuration."""
 
 
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
+@add_config_path_option
 @click.option("--numbered", is_flag=True)
 @services.command("show")
 def show_services_configuration(numbered: bool, config_path: Path) -> None:
@@ -79,8 +84,8 @@ def show_services_configuration(numbered: bool, config_path: Path) -> None:
     print(configuration.services_table(numbered))
 
 
+@add_config_path_option
 @click.option("--quiet", "-q", is_flag=True, help="Disable output.")
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
 @click.option(
     "--interval",
     type=int,
@@ -129,8 +134,8 @@ def add_service_configuration(
         print("Service was successfully added. Restart application.")
 
 
+@add_config_path_option
 @click.option("--quiet", "-q", is_flag=True, help="Disable output.")
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
 @click.argument("number", type=int)
 @services.command("remove")
 def remove_service_configuration(number: int, config_path: Path, quiet: bool) -> None:
@@ -156,7 +161,7 @@ def remove_service_configuration(number: int, config_path: Path, quiet: bool) ->
         print("Service was successfully removed. Restart application.")
 
 
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
+@add_config_path_option
 @click.option("--interval", type=int, help="Interval in seconds between requests. Must be between 5 and 300.")
 @click.option("--timeout", type=int, help="Timeout for outgoing connections to a service.")
 @click.option("--regex", help="Regexp to check.")
@@ -214,8 +219,8 @@ def update_service_configuration(
     print("Service was successfully updated. Restart application.")
 
 
-@click.option("--config-path", default=Path(DEFAULT_CONFIG_PATH), type=Path, help="Path to the configuration file.")
-@click.option("--yes", is_flag=True, help="Start without a confirmation prompt.")
+@add_config_path_option
+@click.option("--yes", "-y", is_flag=True, help="Start without a confirmation prompt.")
 @click.option("--notify-systemd", "-ns", is_flag=True, help="Notify systemd after application start.")
 @click.option(
     "--export-interval",
