@@ -7,21 +7,25 @@ from pathlib import Path
 from typing import List
 
 from prettytable import PrettyTable
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 
 from monitoring.constants import (
     DEBUG_LEVEL,
+    DEFAULT_BATCH_SIZE,
     DEFAULT_CONFIG_PATH,
-    DEFAULT_MAX_WORKERS,
     DEFAULT_VERBOSITY_LEVEL,
     ERROR_LEVEL,
+    EXPORT_INTERVAL_SECONDS,
     INFO_LEVEL,
-    MAX_SERVICES_PER_WORKER,
+    MAX_BATCH_SIZE,
+    MAX_EXPORT_INTERVAL_SECONDS,
+    MIN_BATCH_SIZE,
+    MIN_EXPORT_INTERVAL_SECONDS,
     SYSTEMD_NOTIFY_MESSAGE,
     SYSTEMD_SOCKET,
     WARNING_LEVEL,
 )
-from monitoring.exceptions import InvalidConfigurationFileError
+from monitoring.exceptions import InvalidBatchSizeError, InvalidConfigurationFileError, InvalidExportIntervalError
 from monitoring.models import HealthcheckConfig
 from monitoring.utils import check_path_existence
 
@@ -31,8 +35,6 @@ LOG = logging.getLogger()
 class Config(BaseModel):
     """Global util configuration."""
 
-    local_database_path: str
-    external_database_uri: str
     services: List[HealthcheckConfig]
 
     @property
@@ -86,11 +88,23 @@ class Config(BaseModel):
 class StartupConfiguration(BaseModel):
     """Class for startup configurations."""
 
-    max_workers: int = DEFAULT_MAX_WORKERS
-    services_per_worker: int = MAX_SERVICES_PER_WORKER
     verbosity_level: int = DEFAULT_VERBOSITY_LEVEL
     config_path: Path = Path(DEFAULT_CONFIG_PATH)
     systemd_notify: bool = False
+    export_batch_size: int = DEFAULT_BATCH_SIZE
+    export_interval: int = EXPORT_INTERVAL_SECONDS
+
+    @model_validator(mode="after")
+    def validate_export_batch_size(self) -> "StartupConfiguration":
+        if self.export_batch_size < MIN_BATCH_SIZE or self.export_batch_size > MAX_BATCH_SIZE:
+            raise InvalidBatchSizeError
+        return self
+
+    @model_validator(mode="after")
+    def validate_export_interval(self) -> "StartupConfiguration":
+        if self.export_interval < MIN_EXPORT_INTERVAL_SECONDS or self.export_interval > MAX_EXPORT_INTERVAL_SECONDS:
+            raise InvalidExportIntervalError
+        return self
 
     @property
     def logging_level(self) -> int:

@@ -1,5 +1,7 @@
 """Module with exceptions."""
 
+from monitoring.constants import MAX_BATCH_SIZE, MAX_EXPORT_INTERVAL_SECONDS, MIN_BATCH_SIZE, MIN_EXPORT_INTERVAL_SECONDS
+
 
 class UnsupportedMethodError(Exception):
     """Unsupported HTTP method error."""
@@ -45,21 +47,18 @@ class InvalidDatabaseUriError(Exception):
         super().__init__("Specified environment variable 'DATABASE_URI' is not valid.")
 
 
-class NotEnoughWorkersError(Exception):
-    def __init__(
-        self,
-        workers_num: int,
-        services_num: int,
-        chunk_num: int,
-    ) -> None:
-        super().__init__(
-            f"Invalid worker quantity or chunk size. "
-            f"Trying to distribute: {services_num} services "
-            f"among {workers_num} workers "
-            f"in {chunk_num} chunks."
-        )
-
-
 class ConnectionAttemptsExceededError(Exception):
     def __init__(self) -> None:
         super().__init__("Connection attempts exceeded.")
+
+
+class InvalidBatchSizeError(Exception):
+    def __init__(self) -> None:
+        super().__init__(f"Batch size must be between '{MIN_BATCH_SIZE}' and '{MAX_BATCH_SIZE}'")
+
+
+class InvalidExportIntervalError(Exception):
+    def __init__(self) -> None:
+        super().__init__(
+            f"Export interval must be between '{MIN_EXPORT_INTERVAL_SECONDS}' and '{MAX_EXPORT_INTERVAL_SECONDS}'"
+        )

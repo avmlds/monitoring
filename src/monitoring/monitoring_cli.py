@@ -2,18 +2,18 @@
 import logging
 import os
 from pathlib import Path
+from typing import Any, Callable
 
 import click
 
 from monitoring.config import Config, StartupConfiguration
 from monitoring.constants import (
+    DEFAULT_BATCH_SIZE,
     DEFAULT_CONFIG_PATH,
-    DEFAULT_LOCALDB_PATH,
-    DEFAULT_MAX_WORKERS,
     DEFAULT_REQUEST_INTERVAL_SECONDS,
     DEFAULT_REQUEST_TIMEOUT_SECONDS,
+    EXPORT_INTERVAL_SECONDS,
     MAX_HEALTHCHECK_INTERVAL_SECONDS,
-    MAX_SERVICES_PER_WORKER,
     MIN_HEALTHCHECK_INTERVAL_SECONDS,
     SUPPORTED_METHODS,
 )
@@ -218,18 +218,16 @@ def update_service_configuration(
 @click.option("--yes", is_flag=True, help="Start without a confirmation prompt.")
 @click.option("--notify-systemd", "-ns", is_flag=True, help="Notify systemd after application start.")
 @click.option(
-    "--max-workers",
-    "-mw",
+    "--export-interval",
     type=int,
-    default=DEFAULT_MAX_WORKERS,
-    help="Max number of workers.",
+    default=EXPORT_INTERVAL_SECONDS,
+    help="Interval in seconds between export routines.",
 )
 @click.option(
-    "--services-per-worker",
-    "-spw",
+    "--export-batch-size",
     type=int,
-    default=MAX_SERVICES_PER_WORKER,
-    help="Max services per worker.",
+    default=DEFAULT_BATCH_SIZE,
+    help="Size of one export in items.",
 )
 @click.option("-v", count=True, help="Logging level.")
 @cli.command("start")
@@ -238,8 +236,8 @@ def start_monitoring(
     config_path: Path,
     v: int,
     notify_systemd: bool,
-    max_workers: int,
-    services_per_worker: int,
+    export_batch_size: int,
+    export_interval: int,
 ) -> None:
     """Start monitoring."""
 
@@ -250,8 +248,8 @@ def start_monitoring(
         verbosity_level=v,
         config_path=config_path,
         systemd_notify=notify_systemd,
-        max_workers=max_workers,
-        services_per_worker=services_per_worker,
+        export_batch_size=export_batch_size,
+        export_interval=export_interval,
     )
     logger.setLevel(startup_config.logging_level)
     start(startup_config)

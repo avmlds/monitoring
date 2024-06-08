@@ -4,7 +4,12 @@ import logging
 import socket
 from typing import List
 
-from monitoring.constants import ALLOWED_TIME_ERROR_SECONDS, DEFAULT_BATCH_SIZE, MAX_RECONNECTION_ATTEMPTS
+from monitoring.constants import (
+    ALLOWED_TIME_ERROR_SECONDS,
+    DEFAULT_BATCH_SIZE,
+    EXPORT_INTERVAL_SECONDS,
+    MAX_RECONNECTION_ATTEMPTS,
+)
 from monitoring.exceptions import ConnectionAttemptsExceededError
 from monitoring.models import HealthcheckConfig, ServiceResponse
 from monitoring.repositories import BaseRepository
@@ -13,8 +18,23 @@ from monitoring.utils import send_async_request
 LOG = logging.getLogger()
 
 
+class Killswitch:
+    def __init__(self) -> None:
+        self.value = False
+
+    def engage(self) -> None:
+        self.value = True
+
+    @property
+    def engaged(self) -> bool:
+        return self.value
+
+
 class BaseWorker:
     """Base class for an async worker."""
+
+    def __init__(self, killswitch: Killswitch):
+        self.killswitch = killswitch
 
     @classmethod
     def class_name(cls) -> str:
@@ -33,7 +53,7 @@ class Agent(BaseWorker):
         """Main worker method."""
 
         LOG.debug(f"Starting {self.class_name()} worker.")
-        while True:
+        while not self.killswitch.engaged:
             config: HealthcheckConfig = heapq.heappop(task_queue)
             p1_priority = config.priority_seconds
             if p1_priority > 0:
@@ -64,8 +84,6 @@ class Exporter(BaseWorker):
 
     Responsible for sending monitoring logs to an external database."""
 
-    SLEEP_TIME_SECONDS = 5
-
     @staticmethod
     async def load_batch(result_queue: asyncio.Queue[ServiceResponse], batch_size: int) -> List[ServiceResponse]:
         batch: List[ServiceResponse] = []
@@ -83,15 +101,17 @@ class Exporter(BaseWorker):
         database: BaseRepository,
         result_queue: asyncio.Queue[ServiceResponse],
         batch_size: int,
+        export_interval: int = EXPORT_INTERVAL_SECONDS,
     ) -> None:
         counter = 0
         elements: List[ServiceResponse] = []
-        while True:
+        while not self.killswitch.engaged or not result_queue.empty():
+            # not result_queue.empty() - to drain result queue before shutting down.
             if len(elements) == 0:
                 elements = await self.load_batch(result_queue, batch_size)
             try:
                 await self.export(database, elements)
-                LOG.warning(f"Exported {len(elements)} elements.")
+                LOG.info(f"Exported {len(elements)} elements.")
                 elements = []
                 counter = 0
             except (ConnectionError, socket.gaierror):
@@ -101,18 +121,29 @@ class Exporter(BaseWorker):
                 counter += 1
                 await database.reconnect()
             except Exception as unforeseen_consequences:
-                LOG.exception("Unexpected error. Terminating.")
-                raise Exception from unforeseen_consequences
-            await asyncio.sleep(self.SLEEP_TIME_SECONDS)
+                self.killswitch.engage()
+                LOG.exception("Unexpected error. Terminating.", exc_info=unforeseen_consequences)
+                break
+
+            if not self.killswitch.engaged:
+                await asyncio.sleep(export_interval)
 
     async def start(
         self,
         database: BaseRepository,
         result_queue: asyncio.Queue[ServiceResponse],
         batch_size: int = DEFAULT_BATCH_SIZE,
+        export_interval: int = EXPORT_INTERVAL_SECONDS,
     ) -> None:
-        connection = await database.connect()
+        connection = None
         try:
-            await self.export_rows(connection, result_queue, batch_size)
+            connection = await database.connect()
+            await self.export_rows(connection, result_queue, batch_size, export_interval)
+        except Exception as e:
+            LOG.error(
+                f"Failed to export data to an external database. Application will be shut down. Reason: {e}",
+            )
+            self.killswitch.engage()
         finally:
-            await connection.disconnect()
+            if connection is not None:
+                await connection.disconnect()
