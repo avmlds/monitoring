@@ -1,7 +1,7 @@
 VENV = '.venv'
 BIN = '${VENV}/bin'
 PIP = '${BIN}/pip'
-PYTHON = '${BIN}/python3'
+PYTHON = '${BIN}/python3.12'
 
 
 all: venv install-src install-dev-tools ruff mypy coverage clean
@@ -14,7 +14,7 @@ coverage: coverage-report html-coverage
 
 .PHONY: venv
 venv:
-	python3.9 -m venv .venv
+	python3.12 -m venv .venv
 	'${PIP}' install --upgrade pip
 
 .PHONY: install-dev-tools

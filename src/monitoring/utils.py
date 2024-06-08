@@ -1,7 +1,6 @@
 import datetime
 import logging
 from pathlib import Path
-from typing import Optional
 
 import aiohttp
 
@@ -26,7 +25,7 @@ async def send_async_request(
     *,
     regex_check_required: bool,
     timeout: int = DEFAULT_REQUEST_TIMEOUT_SECONDS,
-    regex: Optional[str] = None,
+    regex: None | str = None,
 ) -> ServiceResponse:
     """Send an HTTP request to a specified URL."""
     if method not in SUPPORTED_METHODS:
@@ -35,11 +34,11 @@ async def send_async_request(
     if timeout < 0:
         raise InvalidParameterValueError("timeout")
 
-    request_timestamp = datetime.datetime.utcnow()
+    request_timestamp = datetime.datetime.now(datetime.UTC)
     try:
         async with aiohttp.ClientSession(headers=DEFAULT_HEADERS) as client:
             async with client.request(method, url, timeout=timeout) as response:
-                response_timestamp = datetime.datetime.utcnow()
+                response_timestamp = datetime.datetime.now(datetime.UTC)
                 LOG.info(f"Success | {response.status} | '{method}' | '{url}'")
                 response_text = await response.text()
                 return ServiceResponse.from_response(

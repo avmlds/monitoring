@@ -2,7 +2,6 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional
 
 import click
 
@@ -151,7 +150,7 @@ def show_services_configuration(numbered: bool, config_path: Path) -> None:
 def add_service_configuration(
     url: str,
     method: str,
-    regex: Optional[str],
+    regex: None | str,
     check_regex: bool,
     interval: int,
     timeout: int,
@@ -215,10 +214,10 @@ def remove_service_configuration(number: int, config_path: Path, quiet: bool) ->
 @services.command("update")
 def update_service_configuration(
     number: int,
-    regex: Optional[str],
+    regex: None | str,
     toggle_check_regex: bool,
-    interval: Optional[int],
-    timeout: Optional[int],
+    interval: None | int,
+    timeout: None | int,
     config_path: Path,
 ) -> None:
     """Update service under NUMBER in the configuration.

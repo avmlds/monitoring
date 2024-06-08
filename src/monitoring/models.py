@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import List, Optional
+from typing import List
 
 from pydantic import BaseModel, model_validator
 
@@ -26,18 +26,18 @@ class ServiceResponse(BaseModel):
     method: str
     request_timestamp: datetime.datetime
 
-    status_code: Optional[int] = None
-    response_timestamp: Optional[datetime.datetime] = None
+    status_code: None | int = None
+    response_timestamp: None | datetime.datetime = None
 
     regex_check_required: bool
-    regex: Optional[str] = None
+    regex: None | str = None
     contains_regex: bool = False
 
     contains_exception: bool = False
-    exception: Optional[str] = None
+    exception: None | str = None
 
     @staticmethod
-    def _contains_regex(regex: str, text: Optional[str]) -> bool:
+    def _contains_regex(regex: str, text: None | str) -> bool:
         """Check if string contains a specified regexp."""
         return text is not None and re.search(regex, text) is not None
 
@@ -47,11 +47,11 @@ class ServiceResponse(BaseModel):
         url: str,
         method: str,
         status: int,
-        response_text: Optional[str],
+        response_text: None | str,
         request_timestamp: datetime.datetime,
         response_timestamp: datetime.datetime,
         regex_check_required: bool,
-        regex: Optional[str] = None,
+        regex: None | str = None,
     ) -> "ServiceResponse":
         """Build an object from a regular HTTP response."""
         klass = cls(
@@ -77,7 +77,7 @@ class ServiceResponse(BaseModel):
         exception: Exception,
         request_timestamp: datetime.datetime,
         regex_check_required: bool,
-        regex: Optional[str] = None,
+        regex: None | str = None,
     ) -> "ServiceResponse":
         """Build an object from an exception."""
         return cls(
@@ -99,8 +99,8 @@ class HealthcheckConfig(BaseModel):
     url: str
     method: str
     check_regex: bool
-    last_checked_at: Optional[datetime.datetime] = None
-    regex: Optional[str] = None
+    last_checked_at: None | datetime.datetime = None
+    regex: None | str = None
     interval_sec: int = DEFAULT_REQUEST_INTERVAL_SECONDS
     timeout: int = DEFAULT_REQUEST_TIMEOUT_SECONDS
 
@@ -111,7 +111,7 @@ class HealthcheckConfig(BaseModel):
     def priority_seconds(self) -> float:
         if self.last_checked_at is None:
             return self._MAXIMUM_PRIORITY
-        return self.interval_sec - (datetime.datetime.utcnow() - self.last_checked_at).total_seconds()
+        return self.interval_sec - (datetime.datetime.now(datetime.UTC) - self.last_checked_at).total_seconds()
 
     @model_validator(mode="after")
     def validate_url(self) -> "HealthcheckConfig":
