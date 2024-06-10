@@ -1,15 +1,11 @@
-import uuid
 from datetime import datetime
 
 import pytest
-from httpx import Request, Response
 
-from monitoring.constants import MAX_URL_LENGTH, METHOD_GET, METHOD_POST
+from monitoring.constants import MAX_URL_LENGTH, METHOD_GET
 from monitoring.models import (
     HealthcheckConfig,
     ServiceResponse,
-    ServiceResponseLocalDump,
-    ServiceResponseRemoteDump,
 )
 
 URL = "http://example.com"
@@ -17,11 +13,11 @@ HTTP_CODE_200 = 200
 
 
 def test_service_response_from_response():
-    get_request = Request(method=METHOD_GET, url=URL)
-    fake_response = Response(status_code=HTTP_CODE_200, text="Test Response", request=get_request)
     service_response = ServiceResponse.from_response(
         url=URL,
-        response=fake_response,
+        method=METHOD_GET,
+        status=HTTP_CODE_200,
+        response_text="Test Response",
         request_timestamp=datetime.now(),
         response_timestamp=datetime.now(),
         regex_check_required=True,
@@ -35,11 +31,11 @@ def test_service_response_from_response():
 
 
 def test_service_response_empty_response_text():
-    get_request = Request(method=METHOD_GET, url=URL)
-    fake_response = Response(status_code=HTTP_CODE_200, text=None, request=get_request)
     service_response = ServiceResponse.from_response(
         url=URL,
-        response=fake_response,
+        method=METHOD_GET,
+        status=HTTP_CODE_200,
+        response_text=None,
         request_timestamp=datetime.now(),
         response_timestamp=datetime.now(),
         regex_check_required=True,
@@ -53,12 +49,12 @@ def test_service_response_empty_response_text():
 
 
 def test_service_response_from_response_negative():
-    get_request = Request(method=METHOD_GET, url=URL)
-    fake_response = Response(status_code=HTTP_CODE_200, text="Test Response", request=get_request)
     with pytest.raises(ValueError):
         ServiceResponse.from_response(
             url=URL,
-            response=fake_response,
+            method=METHOD_GET,
+            status=HTTP_CODE_200,
+            response_text="Test Response",
             request_timestamp=datetime.now(),
             response_timestamp=datetime.now(),
             regex_check_required=True,
@@ -80,85 +76,6 @@ def test_service_response_from_exception():
     assert service_response.method == METHOD_GET
     assert service_response.contains_exception is True
     assert service_response.exception == str(exception)
-
-
-def test_service_response_local_dump_from_service_response():
-    service_response = ServiceResponse(
-        url=URL,
-        method=METHOD_GET,
-        request_timestamp=datetime.now(),
-        regex_check_required=True,
-        regex=r".*Test.*",
-        contains_regex=True,
-    )
-    local_dump = ServiceResponseLocalDump.from_service_response(service_response)
-    assert hasattr(local_dump, "id")
-    assert hasattr(local_dump, "created_at")
-    assert local_dump.url == URL
-    assert local_dump.method == METHOD_GET
-    assert local_dump.contains_regex is True
-    assert local_dump.processed is False
-
-
-def test_service_response_remote_dump_from_local_dump():
-    uid = str(uuid.uuid4())
-    local_created_at = datetime.now()
-    local_dump = ServiceResponseLocalDump(
-        id=uid,
-        created_at=local_created_at,
-        url=URL,
-        method=METHOD_GET,
-        request_timestamp=datetime.now(),
-        regex_check_required=True,
-        regex=r".*Test.*",
-        contains_regex=True,
-        contains_exception=False,
-        status_code=HTTP_CODE_200,
-        response_timestamp=datetime.now(),
-        exception=None,
-    )
-
-    remote_dump = ServiceResponseRemoteDump.from_local_dump(local_dump)
-    assert remote_dump.local_id == uid
-    assert remote_dump.local_created_at == local_created_at
-    assert remote_dump.url == URL
-    assert remote_dump.method == METHOD_GET
-    assert remote_dump.contains_regex is True
-
-
-def test_service_response_remote_dump_as_row():
-    remote_dump = ServiceResponseRemoteDump(
-        local_id=str(uuid.uuid4()),
-        local_created_at=datetime.now(),
-        url=URL,
-        method=METHOD_POST,
-        request_timestamp=datetime.now(),
-        regex_check_required=False,
-        regex=r".*Test.*",
-        contains_regex=False,
-        contains_exception=False,
-        status_code=404,
-        response_timestamp=datetime.now(),
-        exception=None,
-    )
-
-    row = remote_dump.as_row()
-
-    assert isinstance(row, tuple)
-    assert row == (
-        remote_dump.local_id,
-        remote_dump.url,
-        remote_dump.method,
-        remote_dump.request_timestamp,
-        remote_dump.regex_check_required,
-        remote_dump.contains_regex,
-        remote_dump.contains_exception,
-        remote_dump.status_code,
-        remote_dump.response_timestamp,
-        remote_dump.regex,
-        remote_dump.exception,
-        remote_dump.local_created_at,
-    )
 
 
 def test_validate_url_valid():

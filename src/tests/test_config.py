@@ -141,25 +141,8 @@ def test_sorted_services():
     service1 = HealthcheckConfig(url="http://url1", method=METHOD_GET, check_regex=False, regex="regex1")
     service2 = HealthcheckConfig(url="https://url2", method=METHOD_POST, check_regex=True, regex="regex2")
     service3 = HealthcheckConfig(url="http://url3", method=METHOD_OPTION, check_regex=False, regex="regex3")
-    config = Config(
-        local_database_path="",
-        external_database_uri="",
-        services=[service1, service2, service3],
-    )
+    config = Config(services=[service1, service2, service3])
     assert config.sorted_services == [service1, service3, service2]
-
-
-def test_databases_table():
-    local_database_path = "local_db_path"
-    external_database_uri = "external_db_uri"
-    config = Config(
-        local_database_path=local_database_path,
-        external_database_uri=external_database_uri,
-        services=[],
-    )
-    table = config.databases_table()
-    assert local_database_path in table.get_string()
-    assert external_database_uri in table.get_string()
 
 
 def test_services_table():

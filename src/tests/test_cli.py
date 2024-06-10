@@ -4,7 +4,6 @@ import pytest
 from click.testing import CliRunner
 
 from monitoring.constants import (
-    DEFAULT_LOCALDB_PATH,
     HTTP_SCHEMA,
     HTTPS_SCHEMA,
     MAX_HEALTHCHECK_INTERVAL_SECONDS,
@@ -23,49 +22,30 @@ def test_base_cli_invocation():
     assert response.exit_code == 0
     response = runner.invoke(cli, args=["config"])
     assert response.exit_code == 0
-    response = runner.invoke(cli, args=["config", "databases"])
-    assert response.exit_code == 0
     response = runner.invoke(cli, args=["config", "services"])
     assert response.exit_code == 0
 
 
-@pytest.mark.parametrize("local_path", [None, "~/test-local-path"])
 @pytest.mark.parametrize("config_path", ["~/test-config-path"])
-def test_create_delete_config(local_path, config_path):
-    create_args = ["config", "create", "postgresql://"]
-    show_args = ["config", "show"]
-    databases_show_args = ["config", "databases", "show"]
+def test_create_delete_config(config_path):
+    create_args = ["config", "create"]
+    show_args = ["config", "services", "show"]
     delete_args = ["config", "delete"]
 
-    if local_path:
-        create_args.extend(["--local-path", local_path])
     if config_path:
         args = ["--config-path", config_path]
         create_args.extend(args)
         show_args.extend(args)
-        databases_show_args.extend(args)
         delete_args.extend(args)
 
     create_response = runner.invoke(cli, args=create_args)
     assert create_response.exit_code == 0
     try:
         show_response = runner.invoke(cli, args=show_args)
-        databases_show_response = runner.invoke(cli, args=databases_show_args)
         assert show_response.exit_code == 0
-        assert databases_show_response.exit_code == 0
-        if local_path:
-            path = Path(local_path).expanduser().absolute().as_posix()
-            assert path in show_response.stdout
-            assert path in databases_show_response.stdout
-        else:
-            path = Path(DEFAULT_LOCALDB_PATH).expanduser().absolute().as_posix()
-            assert path in show_response.stdout
-            assert path in databases_show_response.stdout
     finally:
         delete_response = runner.invoke(cli, args=delete_args, input="y")
         assert delete_response.exit_code == 0
-        if local_path:
-            assert not Path(local_path).expanduser().absolute().exists()
         if config_path:
             assert not Path(config_path).expanduser().absolute().exists()
 
@@ -87,7 +67,7 @@ def test_create_delete_services(  # noqa: PLR0912
     url,
 ):
     all_args = [config_path, interval, timeout, regex, check_regex, method, url]
-    create_args = ["config", "create", "postgresql://"]
+    create_args = ["config", "create"]
     add_services_args = ["config", "services", "add"]
     remove_service_args = ["config", "services", "remove", "0"]
     show_services_args = ["config", "services", "show"]
@@ -151,7 +131,7 @@ def test_update_services(  # noqa: PLR0912
     toggle_check_regex,
     create_with_regex,
 ):
-    create_args = ["config", "create", "postgresql://"]
+    create_args = ["config", "create"]
     delete_args = ["config", "delete"]
     create_service_args = [
         "config",
