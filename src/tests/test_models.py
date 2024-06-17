@@ -70,6 +70,7 @@ def test_service_response_from_exception():
         exception=exception,
         request_timestamp=datetime.now(),
         regex_check_required=False,
+        response_timestamp=datetime.now(),
     )
 
     assert service_response.url == URL

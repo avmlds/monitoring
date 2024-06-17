@@ -76,6 +76,7 @@ class ServiceResponse(BaseModel):
         method: str,
         exception: Exception,
         request_timestamp: datetime.datetime,
+        response_timestamp: datetime.datetime,
         regex_check_required: bool,
         regex: None | str = None,
     ) -> "ServiceResponse":
@@ -88,6 +89,7 @@ class ServiceResponse(BaseModel):
             regex=regex,
             contains_exception=True,
             exception=str(exception),
+            response_timestamp=response_timestamp,
         )
 
 

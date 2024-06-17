@@ -58,6 +58,7 @@ async def send_async_request(
             method,
             e,
             request_timestamp,
+            datetime.datetime.now(datetime.UTC),
             regex_check_required,
             regex,
         )
