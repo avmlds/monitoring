@@ -6,7 +6,7 @@ Service is able to poll required endpoints and send result to a remote PostgreSQ
 ## What's Inside:
 The workflow is written using asyncio. When you launch the program, you actually launch two workers:
 - `Agent` - responsible for making requests to specified HTTP endpoints. It utilizes a priority queue (python heapq) to schedule task execution. Task pool is limited to one coroutine.
-- `Exporter` - takes care of exporting data to an external PostgreSQL. Connection to a remote database uses a connection pool with automatic reconnect. 
+- `Exporter` - takes care of exporting data to an external PostgreSQL. Connection to a remote database uses a connection pool with automatic reconnect.
   After receiving SIGINT application will stop making requests and finish uploading all the requested data to the external database.
 
 Tested with ~1000 remote endpoints.
@@ -24,14 +24,14 @@ Tested with ~1000 remote endpoints.
 - Make sure you have `Python 3.12+` installed, as well as `make` and `docker-compose`.
   - (`docker-compose` is required only for this tutorial)
 - Don't forget to call `docker-compose down -v` and `make clean` after finishing this tutorial.
-    The configuration file and local database won't be deleted. 
+    The configuration file and local database won't be deleted.
 - Default config will be created at `~/.monitoring/monitoring-config`
 
 ```shell
 git clone <repo>
 cd <folder with repo>
-make install
-docker-compose up -d  # this will bootstrap a local postgres and an example application that you can monitor. 
+make devel
+docker-compose up -d  # this will bootstrap a local postgres and an example application that you can monitor.
 # Look inside the docker-compose.yaml file for more details.
 source .venv/bin/activate
 export DATABASE_URI=postgresql://test:1234567890@127.0.0.1:5432/test
@@ -74,7 +74,7 @@ Options:
 
 Let's start:
 ```shell
-$ monitor start -vvvv                                   
+$ monitor start -vvvv
 
 Are you sure want to start monitoring? Config path: /home/alexander/.monitoring/monitoring-config [y/N]: y
 
