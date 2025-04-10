@@ -89,9 +89,10 @@ def test_dump_config(mock_json_dump):
     fake_path = Path("fake_path")
     file_mock = MagicMock()
 
-    with mock.patch.object(Config, "_create_if_not_exists") as create_mock, mock.patch.object(
-        PosixPath, "open", new_callable=file_mock
-    ) as open_mock:
+    with (
+        mock.patch.object(Config, "_create_if_not_exists") as create_mock,
+        mock.patch.object(PosixPath, "open", new_callable=file_mock) as open_mock,
+    ):
         open_mock.return_value.__enter__.return_value = file_mock
         config.dump(fake_path)
     create_mock.assert_called_once_with(fake_path.expanduser().absolute())
@@ -101,9 +102,10 @@ def test_dump_config(mock_json_dump):
 def test_load_config(mock_json_load):
     fake_path = Path("fake_path")
     file_mock = MagicMock()
-    with mock.patch("monitoring.config.check_path_existence"), mock.patch.object(
-        PosixPath, "open", new_callable=file_mock
-    ) as open_mock:
+    with (
+        mock.patch("monitoring.config.check_path_existence"),
+        mock.patch.object(PosixPath, "open", new_callable=file_mock) as open_mock,
+    ):
         open_mock.return_value.__enter__.return_value = file_mock
         Config.load(fake_path)
     mock_json_load.assert_called_once_with(file_mock)

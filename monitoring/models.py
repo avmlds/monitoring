@@ -134,8 +134,7 @@ class HealthcheckConfig(BaseModel):
     def validate_intervals(self) -> "HealthcheckConfig":
         if not (MIN_HEALTHCHECK_INTERVAL_SECONDS <= self.interval_sec <= MAX_HEALTHCHECK_INTERVAL_SECONDS):
             raise ValueError(
-                f"Interval value must be between "
-                f"{MIN_HEALTHCHECK_INTERVAL_SECONDS} and {MAX_HEALTHCHECK_INTERVAL_SECONDS}."
+                f"Interval value must be between {MIN_HEALTHCHECK_INTERVAL_SECONDS} and {MAX_HEALTHCHECK_INTERVAL_SECONDS}."
             )
         return self
 
