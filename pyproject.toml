@@ -1,3 +1,55 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "monitoring"
+description = "Universal HTTP/HTTPS monitoring tool"
+version = "0.1.0"
+authors = [{name = "Alexander"}]
+license = {text = "MIT"}
+readme = "README.md"
+
+keywords = ["monitoring", "cli", "tool"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Operating System :: POSIX :: Linux",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: System :: Networking :: Monitoring",
+]
+
+requires-python = ">=3.12"
+# FIXME: use == to ease the things
+dependencies = [
+    "aiohttp >= 3.9.5",
+    "asyncpg >= 0.29.0",
+    "click >= 8.1.7",
+    "prettytable >= 3.10.0",
+    "pydantic >= 2.7.0",
+]
+
+[project.urls]
+repository = "https://github.com/avmlds/monitoring"
+homepage = "https://github.com/avmlds/monitoring"
+documentation = "https://github.com/avmlds/monitoring"
+
+[project.scripts]
+monitor = "monitoring.__main__:cli"
+
+[project.optional-dependencies]
+dev = [
+    "coverage==7.4.3",
+    "mypy==1.9.0",
+    "pytest-asyncio==0.23.6",
+    "pytest==8.1.1",
+    "ruff==0.11.4",
+]
+
 [tool.mypy]
 strict = true
 implicit_reexport = true
