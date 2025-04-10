@@ -10,7 +10,7 @@ def test():
 
 
 @app.post("/test")
-def test():
+def test2():
     return "POST"
 
 
