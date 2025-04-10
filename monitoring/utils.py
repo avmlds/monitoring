@@ -37,7 +37,8 @@ async def send_async_request(
     request_timestamp = datetime.datetime.now(datetime.UTC)
     try:
         async with aiohttp.ClientSession(headers=DEFAULT_HEADERS) as client:
-            async with client.request(method, url, timeout=timeout) as response:
+            client_timeout = aiohttp.ClientTimeout(total=timeout)
+            async with client.request(method, url, timeout=client_timeout) as response:
                 response_timestamp = datetime.datetime.now(datetime.UTC)
                 LOG.info(f"Success | {response.status} | '{method}' | '{url}'")
                 response_text = await response.text()
