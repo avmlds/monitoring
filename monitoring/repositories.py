@@ -1,9 +1,8 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, List, Tuple
+from typing import Any, Self
 
 import asyncpg  # type: ignore[import-untyped]
-from typing_extensions import Self
 
 from monitoring.models import ServiceResponse
 
@@ -27,7 +26,7 @@ class BaseRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    async def create(self, items: List[ServiceResponse]) -> None:
+    async def create(self, items: list[ServiceResponse]) -> None:
         raise NotImplementedError
 
 
@@ -93,7 +92,7 @@ class PostgresRepository(BaseRepository):
         return await self.connect()
 
     @staticmethod
-    def _item_as_row(item: ServiceResponse) -> Tuple[Any, ...]:
+    def _item_as_row(item: ServiceResponse) -> tuple[Any, ...]:
         return (
             item.url,
             item.method,
@@ -107,7 +106,7 @@ class PostgresRepository(BaseRepository):
             item.exception,
         )
 
-    async def create(self, items: List[ServiceResponse]) -> None:
+    async def create(self, items: list[ServiceResponse]) -> None:
         rows = [self._item_as_row(item) for item in items]
         if self.pool is not None:
             async with self.pool.acquire() as connection:

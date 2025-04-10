@@ -1,6 +1,5 @@
 import datetime
 import re
-from typing import List
 
 from pydantic import BaseModel, model_validator
 
@@ -158,7 +157,7 @@ class HealthcheckConfig(BaseModel):
         return f"{self.url}{self.method}{self.check_regex}{self.regex}"
 
     @classmethod
-    def fields(cls) -> List[str]:
+    def fields(cls) -> list[str]:
         """Helper fields for data visualisation."""
         return [
             "url",

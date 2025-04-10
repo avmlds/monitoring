@@ -15,7 +15,7 @@ ruff:
 
 .PHONY: mypy
 mypy:
-	uv run mypy src/monitoring
+	uv run mypy monitoring
 
 .PHONY: test
 test:
@@ -23,7 +23,7 @@ test:
 
 .PHONY: coverage-report
 coverage-report:
-	uv run python -m coverage run --source src -m pytest -vv tests/
+	uv run python -m coverage run --source monitoring -m pytest -vv tests/
 	uv run python -m coverage report --show-missing --omit=setup.py,tests/*
 
 .PHONY: html-coverage
@@ -32,4 +32,4 @@ html-coverage:
 
 .PHONY: clean
 clean:
-	rm -rf .venv */*.egg-info .mypy_cache .ruff_cache src/build .pytest_cache htmlcov .coverage uv.lock
+	rm -rf .venv */*.egg-info .mypy_cache .ruff_cache build .pytest_cache htmlcov .coverage uv.lock

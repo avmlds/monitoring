@@ -2,7 +2,6 @@ import asyncio
 import heapq
 import logging
 import socket
-from typing import List
 
 from monitoring.constants import (
     ALLOWED_TIME_ERROR_SECONDS,
@@ -47,7 +46,7 @@ class Agent(BaseWorker):
 
     async def start(
         self,
-        task_queue: List[HealthcheckConfig],
+        task_queue: list[HealthcheckConfig],
         result_queue: asyncio.Queue[ServiceResponse],
     ) -> None:
         """Main worker method."""
@@ -85,15 +84,15 @@ class Exporter(BaseWorker):
     Responsible for sending monitoring logs to an external database."""
 
     @staticmethod
-    async def load_batch(result_queue: asyncio.Queue[ServiceResponse], batch_size: int) -> List[ServiceResponse]:
-        batch: List[ServiceResponse] = []
+    async def load_batch(result_queue: asyncio.Queue[ServiceResponse], batch_size: int) -> list[ServiceResponse]:
+        batch: list[ServiceResponse] = []
         while not result_queue.empty() and len(batch) < batch_size:
             element = await result_queue.get()
             batch.append(element)
         return batch
 
     @staticmethod
-    async def export(database: BaseRepository, batch: List[ServiceResponse]) -> None:
+    async def export(database: BaseRepository, batch: list[ServiceResponse]) -> None:
         await database.create(batch)
 
     async def export_rows(
@@ -104,7 +103,7 @@ class Exporter(BaseWorker):
         export_interval: int = EXPORT_INTERVAL_SECONDS,
     ) -> None:
         counter = 0
-        elements: List[ServiceResponse] = []
+        elements: list[ServiceResponse] = []
         while not self.killswitch.engaged or not result_queue.empty():
             # not result_queue.empty() - to drain result queue before shutting down.
             if len(elements) == 0:

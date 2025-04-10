@@ -50,13 +50,15 @@ dev = [
     "ruff==0.11.4",
 ]
 
+[tool.setuptools.packages.find]
+include = ["monitoring", "monitoring.*"]
+
 [tool.mypy]
 strict = true
 implicit_reexport = true
 
 [tool.ruff]
 line-length = 125
-src = ["src"]
 exclude = [
     "build",
     ".venv",
