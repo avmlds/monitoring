@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 from click.testing import CliRunner
 
+from monitoring.__main__ import cli
 from monitoring.constants import (
     HTTP_SCHEMA,
     HTTPS_SCHEMA,
@@ -10,7 +11,6 @@ from monitoring.constants import (
     MIN_HEALTHCHECK_INTERVAL_SECONDS,
     SUPPORTED_METHODS,
 )
-from monitoring.monitoring_cli import cli
 
 runner = CliRunner()
 
