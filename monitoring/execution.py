@@ -3,7 +3,6 @@ import copy
 import heapq
 import logging
 import os
-from typing import List, Tuple
 
 from monitoring.config import Config, StartupConfiguration
 from monitoring.exceptions import (
@@ -17,7 +16,7 @@ from monitoring.task_manager import Agent, Exporter, Killswitch
 LOG = logging.getLogger()
 
 
-def estimate_workload(config: Config) -> Tuple[float, float]:
+def estimate_workload(config: Config) -> tuple[float, float]:
     """Estimate workload in RPM (requests per minute)."""
 
     rpm = [1 / service.interval_sec for service in config.services]
@@ -29,7 +28,7 @@ def estimate_workload(config: Config) -> Tuple[float, float]:
 
 
 async def start_workers(
-    services: List[HealthcheckConfig],
+    services: list[HealthcheckConfig],
     external_database_uri: str,
     export_batch_size: int,
     export_interval: int,
@@ -54,7 +53,7 @@ async def start_workers(
 
 
 def _start(
-    services: List[HealthcheckConfig],
+    services: list[HealthcheckConfig],
     external_database_uri: str,
     export_batch_size: int,
     export_interval: int,

@@ -4,7 +4,6 @@ import os
 import socket
 from json import JSONDecodeError
 from pathlib import Path
-from typing import List
 
 from prettytable import PrettyTable
 from pydantic import BaseModel, model_validator
@@ -35,7 +34,7 @@ LOG = logging.getLogger()
 class Config(BaseModel):
     """Global util configuration."""
 
-    services: List[HealthcheckConfig]
+    services: list[HealthcheckConfig]
 
     @property
     def contains_no_service(self) -> bool:
@@ -67,7 +66,7 @@ class Config(BaseModel):
             json.dump(self.model_dump(), f)
 
     @property
-    def sorted_services(self) -> List[HealthcheckConfig]:
+    def sorted_services(self) -> list[HealthcheckConfig]:
         return sorted(self.services, key=lambda service: service.sorting_helper)
 
     def services_table(self, numbered: bool = False) -> PrettyTable:

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import logging
 import os
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable
+from typing import Any
 
 import click
 
@@ -258,3 +259,7 @@ def start_monitoring(
     )
     logger.setLevel(startup_config.logging_level)
     start(startup_config)
+
+
+if __name__ == "__main__":
+    cli()

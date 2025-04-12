@@ -1,6 +1,5 @@
 import datetime
 import re
-from typing import List
 
 from pydantic import BaseModel, model_validator
 
@@ -135,8 +134,7 @@ class HealthcheckConfig(BaseModel):
     def validate_intervals(self) -> "HealthcheckConfig":
         if not (MIN_HEALTHCHECK_INTERVAL_SECONDS <= self.interval_sec <= MAX_HEALTHCHECK_INTERVAL_SECONDS):
             raise ValueError(
-                f"Interval value must be between "
-                f"{MIN_HEALTHCHECK_INTERVAL_SECONDS} and {MAX_HEALTHCHECK_INTERVAL_SECONDS}."
+                f"Interval value must be between {MIN_HEALTHCHECK_INTERVAL_SECONDS} and {MAX_HEALTHCHECK_INTERVAL_SECONDS}."
             )
         return self
 
@@ -158,7 +156,7 @@ class HealthcheckConfig(BaseModel):
         return f"{self.url}{self.method}{self.check_regex}{self.regex}"
 
     @classmethod
-    def fields(cls) -> List[str]:
+    def fields(cls) -> list[str]:
         """Helper fields for data visualisation."""
         return [
             "url",
